@@ -3,20 +3,56 @@
 import { createInterface } from 'node:readline';
 import { pathToFileURL } from 'node:url';
 
+export function modulo(a, b) {
+  return a % b;
+}
+
+export function power(base, exponent) {
+  return base ** exponent;
+}
+
+export function squareRoot(n) {
+  if (n < 0) {
+    throw new RangeError('square root of a negative number is not allowed');
+  }
+
+  return Math.sqrt(n);
+}
+
 const OPERATIONS = {
   '+': (first, second) => first + second,
   '-': (first, second) => first - second,
   '*': (first, second) => first * second,
   '/': (first, second) => first / second,
+  '%': modulo,
+  '^': power,
+  '**': power,
 };
 
-// Supported operations: addition (+), subtraction (-), multiplication (*), and division (/).
+// Supported operations: +, -, *, /, %, ^, **, sqrt(n), and √n.
 export function calculate(expression) {
   if (typeof expression !== 'string') {
     return 'Invalid input. Enter an expression such as 2 + 3.';
   }
 
-  const match = expression.match(/^\s*(-?(?:\d+(?:\.\d*)?|\.\d+))\s*([+\-*/])\s*(-?(?:\d+(?:\.\d*)?|\.\d+))\s*$/);
+  const numberPattern = '-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)';
+  const squareRootMatch = expression.match(new RegExp(`^\\s*(?:sqrt\\(\\s*(${numberPattern})\\s*\\)|√\\s*(${numberPattern}))\\s*$`));
+
+  if (squareRootMatch) {
+    const number = Number(squareRootMatch[1] || squareRootMatch[2]);
+
+    if (!Number.isFinite(number)) {
+      return 'Invalid input. Please enter finite numbers.';
+    }
+
+    if (number < 0) {
+      return 'Error: square root of a negative number is not allowed.';
+    }
+
+    return String(squareRoot(number));
+  }
+
+  const match = expression.match(new RegExp(`^\\s*(${numberPattern})\\s*(\\*\\*|\\^|[+\\-*/%])\\s*(${numberPattern})\\s*$`));
 
   if (!match) {
     return 'Invalid input. Enter an expression such as 2 + 3.';
@@ -32,6 +68,10 @@ export function calculate(expression) {
 
   if (operator === '/' && second === 0) {
     return 'Error: division by zero is not allowed.';
+  }
+
+  if (operator === '%' && second === 0) {
+    return 'Error: modulo by zero is not allowed.';
   }
 
   const result = OPERATIONS[operator](first, second);

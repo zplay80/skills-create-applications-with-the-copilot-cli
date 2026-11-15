@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { calculate } from '../calculator.js';
+import { calculate, modulo, power, squareRoot } from '../calculator.js';
+
+test('provides modulo, power, and square root operations', () => {
+  assert.equal(modulo(10, 3), 1);
+  assert.equal(power(2, 3), 8);
+  assert.equal(squareRoot(9), 3);
+  assert.throws(() => squareRoot(-1), {
+    name: 'RangeError',
+    message: 'square root of a negative number is not allowed',
+  });
+});
 
 test('adds numbers', () => {
   assert.equal(calculate('2 + 3'), '5');
@@ -22,6 +32,19 @@ test('divides numbers', () => {
   assert.equal(calculate('1 / 4'), '0.25');
 });
 
+test('calculates modulo, powers, and square roots', () => {
+  assert.equal(calculate('5 % 2'), '1');
+  assert.equal(calculate('-5 % 2'), '-1');
+  assert.equal(calculate('10 % 3'), '1');
+  assert.equal(calculate('2 ^ 3'), '8');
+  assert.equal(calculate('2 ^ -2'), '0.25');
+  assert.equal(calculate('2 ** 3'), '8');
+  assert.equal(calculate('2 ** -2'), '0.25');
+  assert.equal(calculate('sqrt(9)'), '3');
+  assert.equal(calculate('√16'), '4');
+  assert.equal(calculate('√0'), '0');
+});
+
 test('accepts whitespace and signed decimal operands', () => {
   assert.equal(calculate('  -1.5   +   .5  '), '-1');
   assert.equal(calculate('2 + -3'), '-1');
@@ -32,8 +55,15 @@ test('rejects division by positive or negative zero', () => {
   assert.equal(calculate('2 / -0'), 'Error: division by zero is not allowed.');
 });
 
+test('rejects modulo by positive or negative zero and negative square roots', () => {
+  assert.equal(calculate('2 % 0'), 'Error: modulo by zero is not allowed.');
+  assert.equal(calculate('2 % -0'), 'Error: modulo by zero is not allowed.');
+  assert.equal(calculate('sqrt(-1)'), 'Error: square root of a negative number is not allowed.');
+  assert.equal(calculate('√-1'), 'Error: square root of a negative number is not allowed.');
+});
+
 test('rejects malformed or unsupported expressions', () => {
-  for (const expression of ['', '2 ** 3', '2 % 3', '2 + 3 + 4', 'hello']) {
+  for (const expression of ['', '√', 'sqrt(1 + 3)', '2 + 3 + 4', 'hello']) {
     assert.equal(
       calculate(expression),
       'Invalid input. Enter an expression such as 2 + 3.',
